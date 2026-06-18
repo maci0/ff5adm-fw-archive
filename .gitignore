@@ -1,0 +1,3 @@
+# Large firmware binaries — reproduced via fetch-all-firmware.sh, pinned by
+# sha256 in firmware-manifest.tsv. Never commit (~14 GB).
+blobs/
