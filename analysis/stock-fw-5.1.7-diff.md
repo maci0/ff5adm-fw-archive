@@ -1,108 +1,98 @@
-# Stock firmware 5.1.7 — diff vs 5.1.4 (and 5.1.2)
+# Stock firmware 5.1.7: exact diff vs 5.1.4
 
-What changed in the official FlashForge Adventurer 5M **Pro** OTA between the
-version our analysis baselined on (**5.1.4**, the `golden.img` rootfs) and the
-current release (**5.1.7**). Short version: **5.1.7 is a firmwareExe-only
-maintenance bump — nothing ReForge depends on changed.**
+OTA-advertised current Adventurer 5M **Pro** release, compared file-by-file
+against the previous public Pro build (**5.1.4**). Method: extract both
+official OTA tarballs, SHA-256 every member, then SHA-256 every file inside
+the four component archives. Outer `.tgz` / inner `*.tar.xz` are plain `tar`.
+
+**Result: 5.1.7 changes only `firmwareExe` (+354 B) and the software
+`md5sum.list` line for that binary.** Kernel, MCU, library, installer, splash
+images, and every other software file are byte-identical to 5.1.4.
+
+There is no public 5.1.5/5.1.6 for the Pro. An unlisted Pro **5.1.8** exists
+on OSS (not OTA-advertised); 5M has since shipped **5.1.9**. See
+[`stock-fw-5.1.8-diff.md`](stock-fw-5.1.8-diff.md) and
+[`stock-fw-5.1.9-diff.md`](stock-fw-5.1.9-diff.md).
 
 ## Provenance
 
-| field | value |
-|---|---|
-| artifact | `Adventurer5MPro-5.1.7-2.2.3-20260605.tgz` |
-| released | 2026-06-05 (page lists 5.1.7-2.2.3; previous public Pro build is 5.1.4-2.2.3, 2026-05-15) |
-| source | FlashForge official OSS — `https://flashforge-resource.oss-us-east-1.aliyuncs.com/AD5MP%E5%9B%BA%E4%BB%B6/Adventurer5MPro-5.1.7-2.2.3-20260605.tgz` (linked from the official [download page](https://www.flashforge.com/blogs/download-document/adventurer-5m-pro)) |
-| size / sha256 | 68290560 B · `58076910fe0a659f212c19150b780272bdbc09ccc8a8eb30479b650b3f7a5ffd` |
-| container | despite the `.tgz`/`.tar.xz` names, **every archive is plain uncompressed `tar`** — extract with `tar -xf`, not `-z`/`-J` |
+| field | 5.1.4 | 5.1.7 |
+|---|---|---|
+| artifact | `Adventurer5MPro-5.1.4-2.2.3-20260515.tgz` | `Adventurer5MPro-5.1.7-2.2.3-20260605.tgz` |
+| date | 2026-05-15 | 2026-06-05 |
+| size / sha256 | 68290560 B · `80e98c82b028c2c1…0f07` | 68290560 B · `58076910fe0a659f…5ffd` |
+| source | official OSS, linked from the [Pro download page](https://www.flashforge.com/blogs/download-document/adventurer-5m-pro) | same |
 
-There is no public 5.1.5/5.1.6 for the Pro; 5.1.7 follows 5.1.4 directly.
+Live OTA (`update.voxelshare.com`, `app_id=35` `platform=29`, probed
+2026-09-11): a printer on 5.1.4 is offered **v5.1.7**. A printer on 5.1.7
+gets `Latest release version not found` (no newer advertised build). Official
+changelist shipped with that offer:
 
-## Package layout (unchanged shape)
+1. Optimized the offline reconnection mechanism for Flash Studio.
+2. Added grayed-out display for "My Account" information when offline.
+3. Fixed errors with resuming prints after power outages.
+4. Resolved page lagging issues when offline.
+5. Fixed other known bugs.
 
-The OTA `.tgz` is a tar of component tarballs + boot blobs:
+## Package layout (unchanged)
 
 ```
 software-<ver>.tar.xz   firmwareExe (Qt UI) + run.sh + ntpclient + md5sum.list
 kernel-2.1.6.tar.xz     uImage, sunxi.dtb, 8821cu.ko, rcS, bootlogo, udhcpd.conf
-library-2.5.0.tar.xz    ffstartup-arm, nim.tar (NetEase IM), create-rsa.sh, *.cfg
-control-2.2.3.tar.xz    MCU fw: Mainboard-20230831.bin, Eboard-20231012.hex + commands
+library-2.5.0.tar.xz    ffstartup-arm, nim.tar, create-rsa.sh, *.cfg
+control-2.2.3.tar.xz    MCU: Mainboard-20230831.bin, Eboard-20231012.hex
 boot.img start.img end.img  splash/boot images
 flashforge_init.sh inittab shadow mencoder play Cube-PLA-Test.gx
 ```
 
-## 5.1.4 → 5.1.7 (our baseline → current)
+The kernel/control/library **wrapper** tarballs have different sha256 between
+5.1.4 and 5.1.7 (non-reproducible tar metadata). Extracted payloads, including
+those components' `md5sum.list` files, are identical.
 
-Every component is **byte-identical** except the UI app. Verified by extracting
-the 5.1.7 tarballs and comparing against the installed 5.1.4 tree in
-`golden.img` (`debugfs dump` from `tests/qemu-harness/build/stock-clean-rootfs.ext4`):
+## Exact file inventory (58 files each)
 
-| component | 5.1.4 | 5.1.7 | result |
-|---|---|---|---|
-| kernel `uImage` / `sunxi.dtb` / `8821cu.ko` / `rcS` / bootlogo | 2.1.6 | 2.1.6 | **IDENTICAL** (8821cu.ko + dtb byte-compared) |
-| MCU `Mainboard-20230831.bin` / `Eboard-20231012.hex` | 2.2.3 | 2.2.3 | **IDENTICAL** |
-| library `nim.tar` (NetEase IM) / `ffstartup-arm` | 2.5.0 | 2.5.0 | **IDENTICAL** |
-| `flashforge_init.sh` / `inittab` / `shadow` | — | — | **IDENTICAL** |
-| `boot.img` / `start.img` / `end.img` / `mencoder` / `play` | — | — | **IDENTICAL** |
-| `run.sh` (software) | — | — | **IDENTICAL** |
-| **`firmwareExe`** | 9 564 448 B | 9 564 802 B | **changed (+354 B)** |
+Compared with the `software-<ver>/` prefix stripped. 56 identical, 2 changed,
+0 added, 0 removed.
 
-The only delta is `firmwareExe` (the Qt touchscreen app), and it is tiny. The
-human-readable string diff:
+| path | 5.1.4 | 5.1.7 |
+|---|---|---|
+| `software/firmwareExe` | 9 564 448 B · sha256 `4808d7405d495df8…e097` · BuildID `f24ce894…6932` | 9 564 802 B · sha256 `2765a1d432118269…102e` · BuildID `c4a4482f…0ba1` · **+354 B** |
+| `software/md5sum.list` | 1302 B · `91590713698aa956…090e` | 1302 B · `dd230dc79912e28a…94f2` (only the `firmwareExe` MD5 line: `bbc19557…` → `1b685cc6…`) |
 
-- **removed:** the paho-MQTT `SSLSocket.c` https-proxy log strings
-  (`Setting https proxy to %s`, `… proxy auth …`, `https_proxy`) — paho version
-  is unchanged (`paho.mqtt.c-1.3.13`); this is a build/codepath trim, not a
-  feature or library change.
-- **added:** references to `/opt/klipper/klippy/extras/virtual_sdcard.py` and
-  `/root/version`.
-- **hostnames / endpoints: no change** — the set of FlashForge / NetEase /
-  VoxelShare / 127.net hosts embedded in `firmwareExe` is identical to 5.1.4.
+Everything else, including `uImage` / `sunxi.dtb` / `8821cu.ko` / both MCU
+blobs / `nim.tar` / `ffstartup-arm` / `flashforge_init.sh` / `run.sh` /
+`ntpclient` / `client/*` / splash images / `mencoder` / `play`, is
+byte-identical.
 
-So functionally 5.1.7 is a maintenance/bugfix rebuild of the UI; the printer
-backbone (kernel, Wi-Fi driver, MCU firmware, cloud SDK, boot scripts) is the
-exact same bytes as 5.1.4.
+## `firmwareExe` string delta
 
-## 5.1.2 → 5.1.4 (context — the bigger jump)
+Human-readable strings that actually describe behavior (the rest is compiler
+noise from a not-stripped rebuild):
 
-Most of what looks "new in 5.1.7" relative to our older 5.1.2 reference actually
-landed in **5.1.4**:
+- **removed:** paho-MQTT `SSLSocket.c` https-proxy log strings (`Setting https
+  proxy to %s`, `https_proxy`). paho version is still `paho.mqtt.c-1.3.13`.
+- **added:** `/opt/klipper/klippy/extras/virtual_sdcard.py`, `/root/version`,
+  `MQTT connection ok` / `MQTT Reconnected:` / `MQTT connect error:`.
+- **hostnames / URLs: no change.** Same FlashForge / VoxelShare / NetEase /
+  Polar / sz3dp / `pool.ntp.org` set as 5.1.4. The plaintext-HTTP dev OTA
+  server `http://10.33.11.172:32112` is still compiled in.
 
-- **`ntpclient` added** (Larry Doolittle's `ntpclient v2015`, ARM ELF). `run.sh`
-  gained a block that copies it to `/opt/`; `firmwareExe` drives it and the NTP
-  host is **`pool.ntp.org`** (passed via `-h` at runtime, not hardcoded in the
-  binary). → stock now does SNTP time-sync.
-- `firmwareExe` shrank ~49 KB.
-- The 5.1.4 cloud-host reshuffle we already track (OTA → `update.voxelshare.com`,
-  video → `liveplay`/`livepush.flashforge.com`) is present and unchanged through
-  5.1.7 — all already in our cloudblock list.
+## ReForge impact: none required for 5.1.7
 
-## ReForge impact: none required
-
-- **cloudblock** (`S00cloudblock`): host set is **complete and current** for
-  5.1.7 — no new endpoints in `firmwareExe`, and `nim.tar` (the NetEase host
-  source) is byte-identical. No entries to add.
-- **`pool.ntp.org`**: a genuine stock outbound endpoint (since 5.1.4) that we do
-  **not** block — intentional. NTP is benign time-sync and a correct clock
-  matters for TLS/logs; blocking it would only make the app misjudge time. Noted
-  here so it isn't mistaken for an un-tracked telemetry host. Block at the router
-  if a full air-gap is wanted.
-- **kernel / dtb / 8821cu.ko**: byte-identical → the
-  [byte-identical stock-kernel build](stock-kernel-byte-identical-build.md) and
-  module-packaging analysis stay valid for 5.1.7.
-- **MCU firmware**: unchanged (same `Mainboard-20230831` / `Eboard-20231012`).
-- **install hooks** (`flashforge_init.sh`, `auto_run.sh`/`inittab`): unchanged →
-  ReForge's `.tgz` install hook + stock dual-boot remain compatible.
+- cloudblock host set is complete for this build (no new endpoints).
+- kernel / dtb / `8821cu.ko` byte-identical with every 3.1.3–5.1.7 unit.
+- MCU firmware unchanged (`control-2.2.3`).
+- `flashforge_init.sh` / `inittab` unchanged: USB `.tgz` install still works.
 
 ## Reproduce
 
 ```sh
-A=tools/recovery/archive
-curl -fsSL -o "$A/Adventurer5MPro-5.1.7-2.2.3-20260605.tgz" \
-  'https://flashforge-resource.oss-us-east-1.aliyuncs.com/AD5MP%E5%9B%BA%E4%BB%B6/Adventurer5MPro-5.1.7-2.2.3-20260605.tgz'
-mkdir -p /tmp/fw517 && tar -xf "$A/Adventurer5MPro-5.1.7-2.2.3-20260605.tgz" -C /tmp/fw517
-tar -xf /tmp/fw517/software-5.1.7.tar.xz -C /tmp/fw517   # inner archives are plain tar too
-# baseline 5.1.4 comes from the golden rootfs:
-R=tests/qemu-harness/build/stock-clean-rootfs.ext4   # or: make qemu-stock-rootfs
-debugfs -R "dump /opt/PROGRAM/software/5.1.4/firmwareExe /tmp/fw517/firmwareExe.514" "$R"
-cmp /tmp/fw517/firmwareExe.514 /tmp/fw517/firmwareExe   # the only changed payload
+A=blobs/stock
+# already fetched by ../fetch-all-firmware.sh
+mkdir -p /tmp/fw514 /tmp/fw517
+tar -xf "$A/Adventurer5MPro-5.1.4.tgz" -C /tmp/fw514
+tar -xf "$A/Adventurer5MPro-5.1.7.tgz" -C /tmp/fw517
+tar -xf /tmp/fw514/software-5.1.4.tar.xz -C /tmp/fw514
+tar -xf /tmp/fw517/software-5.1.7.tar.xz -C /tmp/fw517
+cmp /tmp/fw514/firmwareExe /tmp/fw517/firmwareExe   # differs; only payload that does
 ```
