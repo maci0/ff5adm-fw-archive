@@ -18,14 +18,14 @@ fw-archive/
     stock-fw-5.1.8-diff.md    Pro 5.1.7 -> 5.1.8 (unlisted OSS)
     stock-fw-5.1.9-diff.md    5M 5.1.7 -> 5.1.9 (current 5M)
     stock-emmc-dump-2.7.2-aceofbase.md  full-eMMC dump teardown (stock 2.7.2 reference unit)
-  blobs/                    GITIGNORED — the large binaries
+  blobs/                    stock firmware tracked; SDK and legacy files gitignored
     stock/                    the 27 stock OTA packages (2.3.x -> Pro 5.1.9 / 5M 5.1.9)
     sdk/                      Allwinner Tina SDK source (tina-linux.tar.gz)
     legacy/                   older ad-hoc firmwareExe/strings extracts (pre-archive)
 ```
 
-Only the manifest, sources, scripts and analysis are version-controlled; the
-blobs (~14 GB) are gitignored and reproduced on demand.
+Stock firmware binaries, the manifest, sources, scripts and analysis are
+version-controlled. SDK sources and legacy extracts remain gitignored.
 
 ## Usage
 
