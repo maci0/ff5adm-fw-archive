@@ -1,9 +1,4 @@
-# Every downloadable FlashForge Adventurer 5M / 5M Pro stock firmware release.
-# Tracked URL list; fetch-all-firmware.sh downloads + hashes + fingerprints these
-# into firmware-manifest.tsv (the blobs land in archive/firmware/, gitignored).
-# Columns: model<TAB>version<TAB>date<TAB>url
-# Sources: FF official OSS (flashforge-resource.oss / en.fss.flashforge.com) where
-# available, else the ghzserg/FF community mirror (verified re-host of FF OTA).
+model	version	date	url
 5MPro	2.3.1	20230921	https://en.fss.flashforge.com/10000/software/56325c0f8ef9ba15ff5c9a9e4becbd46.zip
 5MPro	2.3.7	20231110	https://en.fss.flashforge.com/10000/software/181d48e6ca1448f9e72edf138f10e47e.zip
 5MPro	2.4.5	20240118	https://en.fss.flashforge.com/10000/software/1c835cfd58eff9e3bc3c7ae74ddb2f77.zip

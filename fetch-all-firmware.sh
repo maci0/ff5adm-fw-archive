@@ -60,6 +60,7 @@ fingerprint() {  # $1 = path to downloaded file -> "sw<TAB>kr<TAB>lb<TAB>ct"
 }
 
 grep -vE '^#|^[[:space:]]*$' "${SRC}" | while IFS=$'\t' read -r model version date url; do
+    [ "$model" = "model" ] && continue
     [ -n "$url" ] || continue
     ext="${url##*.}"; case "$ext" in zip|rar|tgz) : ;; *) ext="tgz" ;; esac
     file="${OUT}/Adventurer${model}-${version}.${ext}"
