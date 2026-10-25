@@ -19,7 +19,7 @@ fw-archive/
     stock-fw-5.1.9-diff.md    5M 5.1.7 -> 5.1.9 (current 5M)
     stock-emmc-dump-2.7.2-aceofbase.md  full-eMMC dump teardown (stock 2.7.2 reference unit)
   blobs/                    GITIGNORED — the large binaries
-    stock/                    the 26 stock OTA packages (2.3.x -> Pro 5.1.8 / 5M 5.1.9)
+    stock/                    the 27 stock OTA packages (2.3.x -> Pro 5.1.9 / 5M 5.1.9)
     sdk/                      Allwinner Tina SDK source (tina-linux.tar.gz)
     legacy/                   older ad-hoc firmwareExe/strings extracts (pre-archive)
 ```
