@@ -9,8 +9,7 @@ place instead of being duplicated per repo.
 
 ```
 fw-archive/
-  firmware-sources.tsv      tracked — every release's URL (model, version, date, url)
-  firmware-manifest.tsv     tracked — sha256 + size + component fingerprint per package
+  firmware-manifest.tsv     tracked — URLs + sha256 + size + component fingerprint per package
   fetch-all-firmware.sh     tracked — download + verify + fingerprint into blobs/stock/
   analysis/                 tracked — artifact-grounded writeups
     stock-fw-changelog.md     per-version component changelog (every downloadable release)
@@ -24,7 +23,7 @@ fw-archive/
     legacy/                   older ad-hoc firmwareExe/strings extracts (pre-archive)
 ```
 
-Stock firmware binaries, the manifest, sources, scripts and analysis are
+Stock firmware binaries, the manifest, scripts and analysis are
 version-controlled. SDK sources and legacy extracts remain gitignored.
 
 ## Usage
@@ -34,8 +33,8 @@ version-controlled. SDK sources and legacy extracts remain gitignored.
 column -t -s $'\t' firmware-manifest.tsv
 ```
 
-To add a newly released version: append its row to `firmware-sources.tsv` and
-re-run the fetcher (existing blobs are reused; only the new one downloads).
+To add a newly released version: append a 12-column row to `firmware-manifest.tsv` with
+model, version, date and URL; use `-` for the other eight fields. Then re-run the fetcher (existing blobs are reused; only the new one downloads).
 
 ## What's here vs the repos
 

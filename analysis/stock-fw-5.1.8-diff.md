@@ -83,7 +83,7 @@ info + a timelapse encoder switch.
 
 ```sh
 A=blobs/stock
-../fetch-all-firmware.sh    # 5.1.8 is in firmware-sources.tsv
+../fetch-all-firmware.sh    # 5.1.8 is in firmware-manifest.tsv
 mkdir -p /tmp/fw517 /tmp/fw518
 tar -xf "$A/Adventurer5MPro-5.1.7.tgz" -C /tmp/fw517
 tar -xf "$A/Adventurer5MPro-5.1.8.tgz" -C /tmp/fw518

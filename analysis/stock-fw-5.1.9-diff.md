@@ -104,7 +104,7 @@ are unchanged here:
 
 ```sh
 A=blobs/stock
-../fetch-all-firmware.sh    # 5M 5.1.4 / 5.1.7 / 5.1.9 are in firmware-sources.tsv
+../fetch-all-firmware.sh    # 5M 5.1.4 / 5.1.7 / 5.1.9 are in firmware-manifest.tsv
 mkdir -p /tmp/m517 /tmp/m519
 tar -xf "$A/Adventurer5M-5.1.7.tgz" -C /tmp/m517
 tar -xf "$A/Adventurer5M-5.1.9.tgz" -C /tmp/m519

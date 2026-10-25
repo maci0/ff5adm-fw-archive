@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
-# tools/recovery/fetch-all-firmware.sh
+# fetch-all-firmware.sh
 #
-# Download every stock firmware listed in firmware-sources.tsv, record its
+# Download every stock firmware listed in firmware-manifest.tsv, record its
 # sha256 + size, and fingerprint the component versions (software / kernel /
 # library / control) inside each package. Emits firmware-manifest.tsv.
 #
-# Blobs are saved under archive/firmware/ (gitignored); only the manifest is
-# tracked. Idempotent: an already-downloaded file with a matching size is reused.
+# Blobs are tracked under blobs/stock/. Existing non-empty files are reused.
 #
 # FF packages are quirky: the outer .tgz is a PLAIN (uncompressed) tar, and the
 # inner *.tar.xz members are ALSO plain tar. Older releases ship the firmware
 # inside a .zip or .rar wrapper. This script normalizes all three.
 #
-# Usage: tools/recovery/fetch-all-firmware.sh
+# Usage: ./fetch-all-firmware.sh
 set -uo pipefail
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC="${DIR}/firmware-sources.tsv"
 OUT="${DIR}/blobs/stock"
 MAN="${DIR}/firmware-manifest.tsv"
 mkdir -p "${OUT}"
 
-[ -f "${SRC}" ] || { echo "no ${SRC}"; exit 1; }
+[ -f "${MAN}" ] || { echo "no ${MAN}"; exit 1; }
+TMP_MAN="$(mktemp "${MAN}.XXXXXX")" || exit 1
+trap 'rm -f "$TMP_MAN"' EXIT
 
-printf 'model\tversion\tdate\tcontainer\tfile\tsize\tsha256\tsoftware\tkernel\tlibrary\tcontrol\turl\n' > "${MAN}"
+printf 'model\tversion\tdate\tcontainer\tfile\tsize\tsha256\tsoftware\tkernel\tlibrary\tcontrol\turl\n' > "${TMP_MAN}"
 
 # Print the component versions (software/kernel/library/control) inside a
 # firmware package. Format-agnostic: FF mislabels containers (a ".rar" that is
@@ -59,15 +59,14 @@ fingerprint() {  # $1 = path to downloaded file -> "sw<TAB>kr<TAB>lb<TAB>ct"
     printf '%s\t%s\t%s\t%s' "${sw:-?}" "${kr:-?}" "${lb:-?}" "${ct:-?}"
 }
 
-grep -vE '^#|^[[:space:]]*$' "${SRC}" | while IFS=$'\t' read -r model version date url; do
+cut -f1-3,12 "${MAN}" | grep -vE '^#|^[[:space:]]*$' | while IFS=$'\t' read -r model version date url; do
     [ "$model" = "model" ] && continue
     [ -n "$url" ] || continue
     ext="${url##*.}"; case "$ext" in zip|rar|tgz) : ;; *) ext="tgz" ;; esac
     file="${OUT}/Adventurer${model}-${version}.${ext}"
     if [ ! -s "$file" ]; then
         echo "[fetch] ${model} ${version} ..."
-        curl -fsSL -o "$file" "$url" || { echo "  FAIL ${model} ${version}"; rm -f "$file"; \
-            printf '%s\t%s\t%s\t%s\tDOWNLOAD_FAILED\t-\t-\t-\t-\t-\t-\t%s\n' "$model" "$version" "$date" "$ext" "$url" >> "${MAN}"; continue; }
+        curl -fsSL -o "$file" "$url" || { echo "  FAIL ${model} ${version}"; rm -f "$file"; exit 1; }
     else
         echo "[have ] ${model} ${version}"
     fi
@@ -75,8 +74,10 @@ grep -vE '^#|^[[:space:]]*$' "${SRC}" | while IFS=$'\t' read -r model version da
     sha="$(sha256sum "$file" | cut -d' ' -f1)"
     fp="$(fingerprint "$file")"
     printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
-        "$model" "$version" "$date" "$ext" "$(basename "$file")" "$size" "$sha" "$fp" "$url" >> "${MAN}"
-done
+        "$model" "$version" "$date" "$ext" "$(basename "$file")" "$size" "$sha" "$fp" "$url" >> "${TMP_MAN}"
+done || exit 1
+
+mv "$TMP_MAN" "$MAN" || exit 1
 
 echo ""
 echo "manifest -> ${MAN}"

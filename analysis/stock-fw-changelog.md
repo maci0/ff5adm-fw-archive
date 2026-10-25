@@ -6,9 +6,8 @@ describe UI features), this tracks the **component versions and content** of
 every firmware package we can download: the layer ReForge actually cares about
 (kernel, Wi-Fi driver, MCU firmware, cloud SDK, partition layout).
 
-- **Manifest (checksums):** [`../firmware-manifest.tsv`](../firmware-manifest.tsv)
+- **Manifest (URLs and checksums):** [`../firmware-manifest.tsv`](../firmware-manifest.tsv)
   (sha256 + size + component fingerprint for all 26 archived packages).
-- **Sources (URLs):** [`../firmware-sources.tsv`](../firmware-sources.tsv)
 - **Re-fetch:** `../fetch-all-firmware.sh` (downloads → `blobs/stock/`,
   gitignored; re-verifies + re-fingerprints idempotently).
 - Deep diffs:
@@ -146,5 +145,5 @@ behavior; none of it changes the component layer above.
 column -t -s $'\t' ../firmware-manifest.tsv
 ```
 
-To add a newly released version: append its row to `firmware-sources.tsv` and
-re-run the fetcher (existing blobs are reused; only the new one downloads).
+To add a newly released version, follow the manifest row format in the
+[README](../README.md#usage), then re-run the fetcher.
